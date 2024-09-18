@@ -1,6 +1,87 @@
+## Splash screen de bienvenida
+
+- [x] Crear página de folio de `profiles`
+- [x] Añadir diseño a la pantalla de bienvenida
+    ```php
+    <x-layouts.dashboard>
+        <div class="flex h-full min-h-screen items-center justify-center">
+            <div class="flex flex-col">
+                <h1 class="text-center text-3xl text-white md:text-6xl">¿Quién está viendo?</h1>
+                <div class="mt-10 flex items-center justify-center gap-8">
+                    <a href="#">
+                        <div class="group mx-auto w-44 flex-row">
+                            <div
+                                class="flex h-44 w-44 items-center justify-center overflow-hidden rounded-md border-2 border-transparent group-hover:cursor-pointer group-hover:border-white"
+                            >
+                                <img class="h-max w-max object-contain" src="/images/default-blue.png" alt="" />
+                            </div>
+                            <div class="mt-4 text-center text-2xl text-gray-400 group-hover:text-white">
+                                Nombre del perfil
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </x-layouts.dashboard>
+    ```
+- [x] Cambiar el redirect del index a `profiles`
+- [x] Cambiar el redirect de `logout` a `home`
+
+
+## Rediseñar las páginas de autenticación
+
+- [x] Cambiar el layout general del registro
+    ```php
+    <div
+        class="relative h-full min-h-screen w-full bg-cover bg-fixed bg-center bg-no-repeat"
+        style="background-image: url('/images/hero.jpg')"
+    >
+        <div class="h-full min-h-screen w-full bg-black lg:bg-opacity-50">
+            <nav class="px-12 py-5">
+                <img src="/images/logo.png" class="h-12" alt="Logo" />
+            </nav>
+            <div class="flex justify-center">
+                <div
+                    class="mt-2 w-full self-center rounded-md bg-black bg-opacity-70 px-16 py-16 lg:w-2/5 lg:max-w-md"
+                >
+                    <h2 class="mb-8 text-4xl font-semibold text-white">Registrarse</h2>
+                    <!-- Formulario de registro -->
+                </div>
+            </div>
+        </div>
+    </div>
+    ```
+- [x] Crear componente `input`
+    ```php
+    @props(['label'])
+
+    <div class="relative">
+        <input
+            placeholder=" "
+            {{ $attributes->merge(['class' => 'border-0 text-base invalid:border-b-1 peer block w-full appearance-none rounded-md bg-neutral-700 px-6 pb-1 pt-6 text-white focus:outline-none focus:ring-0']) }}
+        />
+        <label
+            for="{{ $attributes->get('id') }}"
+            class="absolute left-6 top-4 z-10 origin-[0] -translate-y-3 scale-75 transform text-base text-zinc-400 duration-150 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75"
+        >
+            {{ $label }}
+        </label>
+    </div>
+    ```
+- [x] Rediseñar botón de registro
+    ```php
+    <button class="mt-10 w-full rounded-md bg-red-600 py-3 text-white transition hover:bg-red-700">
+        Registrarse
+    </button>
+    ```
+- [x] Rediseñar la página de inicio de sesión
+    Duplicar el diseño de registro
+
+
 ## Barra de navegación
 
-- [ ] Crear componente volt `navbar`
+- [x] Crear componente volt `navbar`
 
     ```php filename=resources/views/livewire/navbar.blade.php
     <nav
@@ -19,16 +100,16 @@
         </div>
     </nav>
     ```
-- [ ] Crear slot `header` en el componente layout de `dashboard`
-- [ ] Agregar componente `navbar` en la página `dashboard` en el slot `header`
-- [ ] Agregar logo
+- [x] Crear slot `header` en el componente layout de `dashboard`
+- [x] Agregar componente `navbar` en la página `dashboard` en el slot `header`
+- [x] Agregar logo
 
     ```php filename=resources/views/livewire/navbar.blade.php
     <img src="/images/logo.png" class="h-4 lg:h-7" alt="Logo" />
     ```
 
     Assets en `https://github.com/oliverservin/course-stubs/tree/main/netflix-clone`
-- [ ] Agregar elementos de navegación
+- [x] Agregar elementos de navegación
     - [ ] Agregar markup para elementos de navegación
         ```php filename=resources/views/livewire/navbar.blade.php
         <a
@@ -94,7 +175,7 @@
                 @endforeach
             </div>
             ```
-- [ ] Agregar botones de buscar y de notificaciones
+- [x] Agregar botones de buscar y de notificaciones
     ```php filename=resources/views/livewire/navbar.blade.php
     <button type="button" class="text-gray-200 transition hover:text-gray-300">
         <!-- icono de buscar -->
@@ -131,7 +212,7 @@
         </svg>
     </button>
     ```
-- [ ] Agregar dropdown de cuenta
+- [x] Agregar dropdown de cuenta
     ```php filename=resources/views/livewire/navbar.blade.php
     <div x-data="{ isActive: false }" class="relative">
         <button x-on:click="isActive = !isActive" type="button" class="relative flex flex-row items-center gap-2">
@@ -195,7 +276,7 @@
             $this->redirect(route('dashboard'), navigate: true);
         };
         ```
-- [ ] Cambiar el color de fondo de la barra de navegación
+- [x] Cambiar el color de fondo de la barra de navegación
 
     ```php filename=resources/views/livewire/navbar.blade.php
     <nav
@@ -215,7 +296,7 @@
 
 ## Modal de más información
 
-- [ ] Agregar botón de más información al billboard
+- [x] Agregar botón de más información al billboard
 
     ```php
     <button
@@ -240,7 +321,7 @@
         Más información
     </button>
     ```
-- [ ] Agregar modal
+- [x] Agregar modal
 
     ```php
     <div>
@@ -269,7 +350,7 @@
             </div>
         </div>
         ```
-- [ ] Agregar más información al modal
+- [x] Agregar más información al modal
 
     ```php
     <div>
@@ -330,7 +411,7 @@
         </div>
     </div>
     ```
-- [ ] Añadir a favoritos desde el modal
+- [x] Añadir a favoritos desde el modal
 
     - [ ] Agregar botón de añadir a favoritos
         ```php
@@ -379,7 +460,7 @@
             $this->dispatch('toggled-favorite');
         };
         ```
-- [ ] Agregar botón de modal al componente `movie-list`
+- [x] Agregar botón de modal al componente `movie-list`
 
     ```php filename=resources/views/livewire/movie-list.blade.php
     <button
@@ -413,13 +494,13 @@
 
 ## Marcar favoritos
 
-- [ ] Crear migracion para la tabla `favorites`
+- [x] Crear migracion para la tabla `favorites`
 
   ```php filename=database/migrations/create_favorites_table.php
   $table->foreignId('user_id')->constrained()->onDelete('cascade');
   $table->foreignId('movie_id')->constrained()->onDelete('cascade');
   ```
-- [ ] Crear relación de `favoriteMovies` en el modelo `User`
+- [x] Crear relación de `favoriteMovies` en el modelo `User`
 
   ```php filename=app/Models/User.php
   public function favoriteMovies()
@@ -427,7 +508,7 @@
       return $this->belongsToMany(Movie::class, 'favorites');
   }
   ```
-- [ ] Crear relación de `favoritedBy` en el modelo `Movie`
+- [x] Crear relación de `favoritedBy` en el modelo `Movie`
 
   ```php filename=app/Models/Movie.php
   public function favoritedBy()
@@ -435,7 +516,7 @@
       return $this->belongsToMany(User::class, 'favorites');
   }
   ```
-- [ ] Anadir botón de favorito en el componente `movie-list`
+- [x] Anadir botón de favorito en el componente `movie-list`
 
   ```php filename=resources/views/livewire/movie-list.blade.php
   <button
@@ -474,7 +555,7 @@
       @endif
   </button>
   ```
-- [ ] Crear accion para favoritar una película en el componente `movie-list`
+- [x] Crear accion para favoritar una película en el componente `movie-list`
 
   ```php filename=resources/views/livewire/movie-list.blade.php
     on(['toggled-favorite' => $getMovies]);
@@ -488,7 +569,7 @@
 
 ## Listar películas
 
-- [ ] Crear componente volt `movie-list`
+- [x] Crear componente volt `movie-list`
 
   ```php filename=resources/views/livewire/movie-list.blade.php
   <div class="mt-4 space-y-8 px-4 md:px-12">
@@ -547,7 +628,7 @@
       </div>
   </div>
   ```
-- [ ] Obtener películas desde el modelo y listarlas
+- [x] Obtener películas desde el modelo y listarlas
 
   ```php
   $getMovies = function () {
@@ -561,7 +642,7 @@
 
 ## Ver película
 
-- [ ] Crear folio para ver una película
+- [x] Crear folio para ver una película
 
   ```php filename=resources/views/pages/watch/[Movie].blade.php
   <x-layouts.dashboard>
@@ -591,7 +672,7 @@
       </div>
   </x-layouts.dashboard>
   ```
-- [ ] Agregar enlace para ver la película desde el billboard
+- [x] Agregar enlace para ver la película desde el billboard
 
   ```php filename=resources/views/components/livewire/billboard.blade.php
   <div class="mt-3 flex flex-row items-center gap-3 md:mt-4">
