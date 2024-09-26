@@ -1,3 +1,266 @@
+## Comentar publicaciones
+
+- [ ] Crear pagina Folio `Posts/[Post].blade.php`
+
+  ```php filename=Posts/[Post].blade.php
+  <?php
+
+  use function Laravel\Folio\name;
+
+  name('posts.show');
+
+  ?>
+
+  <x-layouts.app>
+      <div class="relative border-b-[1px] border-neutral-800 p-5 transition hover:bg-neutral-900">
+          <div class="flex flex-row items-start gap-3">
+              <x-avatar :user="$post->user" />
+              <div>
+                  <div class="flex flex-row items-center gap-2">
+                      <span
+                          class="relative z-10 font-semibold text-white hover:underline"
+                      >
+                          {{ $post->user->name }}
+                      </span>
+                      <span
+                          class="relative z-10 hidden text-neutral-500 hover:underline md:block"
+                      >
+                          {{ '@'.$post->user->username}}
+                      </span>
+                      <span class="text-sm text-neutral-500">
+                          {{ $post->created_at->diffForHumans() }}
+                      </span>
+                  </div>
+                  <div class="mt-1 text-white">
+                      {{ $post->body }}
+                  </div>
+              </div>
+          </div>
+      </div>
+  </x-layouts.app>
+  ```
+- [ ] Enlazar al post desde `post-list`
+
+  ```php
+  <a class="absolute inset-0"></a>
+  ```
+- [ ] Crear componente Volt `comment-form`
+
+  Copiar componente desde `post-form`
+- [ ] Crear modelo `Comment` con migración
+
+
+  ```php filename=database/migrations/create_comments_table.php
+  $table->foreignId('user_id')->constrained('users');
+  $table->foreignId('post_id')->constrained('posts');
+  $table->text('body');
+  ```
+
+  ```php filename=app/Models/Comment.php
+  protected $fillable = [
+      'user_id',
+      'post_id',
+      'body',
+  ];
+  ```
+- [ ] Ejecutar migraciones
+
+  ```bash
+  php artisan migrate
+  ```
+- [ ] Agregar relaciones entre comentarios y posts
+
+
+  ```php filename=app/Models/Comment.php
+  public function user()
+  {
+      return $this->belongsTo(User::class);
+  }
+
+  public function post()
+  {
+      return $this->belongsTo(Post::class);
+  }
+  ```
+
+  ```php filename=app/Models/Post.php
+  public function comments()
+  {
+      return $this->hasMany(Comment::class);
+  }
+  ```
+- [ ] Guardar comentarios
+
+
+  ```blade filename=resources/views/livewire/comment-form.blade.php
+  state(['post', 'body']);
+
+  rules(['body' => 'required|min:3']);
+
+  $save = function () {
+      $this->validate();
+
+      $this->authorize('addComment', $this->post);
+
+      $this->post->comments()->create([
+          'user_id' => Auth::user()->id,
+          'body' => $this->body,
+      ]);
+
+      $this->post->user->notify(new CommentAdded);
+
+      $this->dispatch('comment.created');
+
+      $this->body = '';
+  };
+  ```
+- [ ] Pasar `post` al componente `comment-form`
+
+  ```php filename=resources/views/pages/posts/[Post]
+  <livewire:comment-form :post="$post" />
+  ```
+- [ ] Desactivar botón "Publicar" por defecto
+
+  ```php filename=resources/views/livewire/comment-form.blade.php
+  <x-button disabled x-bind:disabled="! $wire.body">Publicar</x-button>
+  ```
+
+  Lo mismo para el `post-form`
+- [ ] Crear componente Volt `comment-list`
+
+  ```php filename=resources/views/livewire/comment-list.blade.php
+  <div>
+      <div class="border-b-[1px] border-neutral-800 p-5">
+          <div class="flex flex-row items-start gap-3">
+              <x-avatar />
+              <div>
+                  <div class="flex flex-row items-center gap-2">
+                      <span
+                          class="relative z-10 font-semibold text-white hover:underline"
+                      >
+                          Nombre
+                      </span>
+                      <span
+                          class="relative z-10 hidden text-neutral-500 hover:underline md:block"
+                      >
+                          Username
+                      </span>
+                      <span class="text-sm text-neutral-500">
+                          Fecha
+                      </span>
+                  </div>
+                  <div class="mt-1 text-white">
+                      Contenido del comentario
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+    ```
+- [ ] Registrar `comment-list` en página Folio
+
+  ```php filename=resources/views/pages/posts/[Post].blade.php
+  <livewire:comment-list />
+  ```
+- [ ] Mostrar lista de comentarios
+
+  ```php filename=resources/views/livewire/comment-list.blade.php
+  $getComments = function () {
+      return $this->comments = $this->post->comments;
+  };
+
+  state(['post', 'comments' => $getComments]);
+  ```
+- [ ] Pasar `post` al componente `comment-list`
+
+  ```php filename=resources/views/pages/posts/[Post]
+    <livewire:comment-list :post="$post" />
+  ```
+- [ ] Emitir evento `comment-created` en el `comment-form`
+
+  ```php
+  $this->dispatch('comment-created');
+  ```
+- [ ] Escuchar evento `comment-created` en el `comment-list`
+
+  ```php
+  on(['comment-created' => $getComments]);
+  ```
+- [ ] Mostrar conteo de comentario en cada post
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  <div class="mt-3 flex flex-row items-center gap-10">
+      <a
+          class="relative z-10 flex flex-row items-center gap-2 text-neutral-500 transition hover:text-sky-500"
+      >
+          <x-icons.comment class="size-5" />
+          <p>Conteo de comentario</p>
+      </a>
+  </div>
+  ```
+- [ ] Añadir icono de comentario
+
+  ```php filename=resources/views/componentes/icon/comment.blade.php
+  <svg
+      {{ $attributes }}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+  >
+      <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+      />
+  </svg>
+  ```
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  <x-icon.comment class="size-5"></x-icon.comment>
+  ```
+- [ ] Crear componente `header` para la navegación
+
+  ```php filename=resources/views/components/icon/arrow-left.blade.php
+  <svg {{ $attributes }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path
+          fill-rule="evenodd"
+          d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
+          clip-rule="evenodd"
+      />
+  </svg>
+  ```
+
+  ```php filename=resources/views/components/header.blade.php
+  @props(['withBackButton' => false])
+
+  <div class="border-b-[1px] border-neutral-800 p-5">
+      <div class="flex flex-row items-center gap-2">
+          @if ($withBackButton)
+              <a
+                  href="{{ url()->previous() === url()->current() ? route('home') : url()->previous() }}"
+                  wire:navigate
+                  class="transition hover:opacity-70"
+              >
+                  <x-icon.arrow-left class="size-5" />
+              </a>
+          @endif
+
+          <h1 class="text-xl font-semibold text-white">{{ $slot }}</h1>
+      </div>
+  </div>
+  ```
+- [ ] Añadir `header` a las páginas `index` y `posts/[Post]`
+
+  ```php filename=resources/views/pages/index.blade.php
+  <x-header>Inicio</x-header>
+  ```
+
+  ```php filename=resources/views/pages/posts/[Post].blade.php
+  <x-header with-back-button>Post</x-header>
+  ```
+
 ## Listado de publicaciones
 
 - [ ] Crear componente Volt `post-list`
