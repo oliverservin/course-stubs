@@ -253,6 +253,7 @@
   ```
 - [ ] Añadir `header` a las páginas `index` y `posts/[Post]`
 
+
   ```php filename=resources/views/pages/index.blade.php
   <x-header>Inicio</x-header>
   ```
@@ -260,6 +261,8 @@
   ```php filename=resources/views/pages/posts/[Post].blade.php
   <x-header with-back-button>Post</x-header>
   ```
+- [ ] Crear componente Blade `auth-buttons`
+- [ ] Añadir `auth-buttons` a las páginas `index` y `posts/[Post]`
 
 ## Listado de publicaciones
 
