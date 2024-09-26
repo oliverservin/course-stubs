@@ -1,3 +1,261 @@
+## Mostrar posts por usuario
+
+- [ ] Crear página de Folio para ver usuarios
+
+  ```php filename=resources/views/pages/users/[User].blade.php
+  <x-layouts.app>
+      <x-header with-back-button>{{ $user->name }}</x-header>
+  </x-layouts.app>
+  ```
+- [ ] Enlazar ver usuario
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  <a
+      href="{{ route('users.show', ['user' => $post->user]) }}"
+      wire:navigate
+  >
+      Nombre del usuario
+  </a>
+
+  <a
+      href="{{ route('users.show', ['user' => $post->user]) }}"
+      wire:navigate
+  >
+      Username
+  </a>
+  ```
+
+  ```php filename=resources/views/livewire/show-post.blade.php
+  <a
+      href="{{ route('users.show', ['user' => $post->user]) }}"
+      wire:navigate
+  >
+      Nombre del usuario
+  </a>
+
+  <a
+      href="{{ route('users.show', ['user' => $post->user]) }}"
+      wire:navigate
+  >
+      Username
+  </a>
+  ```
+- [ ] Crear componente Blade `user-hero` y añadirlo a `users/[User]`
+
+  ```php filename=resources/views/components/user-hero.blade.php
+  <div>
+      <div class="relative h-44 bg-neutral-700">
+          <div class="absolute -bottom-16 left-4">
+              <x-avatar :user="$user" large has-border />
+          </div>
+      </div>
+  </div>
+  ```
+
+  ```php filename=resources/views/pages/users/[User].blade.php
+  <div class="pt-20">
+      <livewire:post-list />
+  </div>
+  ```
+- [ ] Crear componente Blade `user-bio` y añadirlo a `users/[User]`
+
+  ```php filename=resources/views/components/user-bio.blade.php
+  @props(['user'])
+
+  <div class="border-b-[1px] border-neutral-800 pb-4">
+      <div class="mt-8 px-4">
+          <div class="flex flex-col">
+              <p class="text-2xl font-semibold text-white">
+                  {{ $user->name }}
+              </p>
+              <p class="text-base text-neutral-500">{{ '@'.$user->username }}</p>
+          </div>
+          <div class="mt-4 flex flex-col">
+              <p class="text-white">{{ $user->bio }}</p>
+              <div class="mt-4 flex flex-row items-center gap-2 text-neutral-500">
+                  <x-icon.calendar class="size-6" />
+                  <p>Se unió en {{ $user->created_at->isoFormat('MMMM \d\e\ YYYY') }}</p>
+              </div>
+          </div>
+      </div>
+  </div>
+  ```
+
+  ```php filename=resources/views/components/icon/calendar.blade.php
+  <svg {{ $attributes }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path
+          fill-rule="evenodd"
+          d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z"
+          clip-rule="evenodd"
+      />
+  </svg>
+  ```
+
+  ```php filename=resources/views/pages/users/[User].blade.php
+  <div class="pt-10">
+      <x-user-bio :user="$user" />
+  </div>
+  <livewire:post-list :user="$user" />
+  ```
+- [ ] Re-utilizar componente `post-list` para filtrar posts por usuario
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  state(['user' => null, 'posts' => $getPosts]);
+
+  $getPosts = function () {
+      if ($this->user) {
+          return $this->posts = $this->user->posts;
+      }
+
+      return $this->posts = Post::all();
+  };
+  ```
+
+  ```php filename=resources/views/pages/users/[User].blade.php
+  <livewire:post-list :user="$user" />
+  ```
+
+## Likear publicaciones
+
+- [ ] Agregar botón para likear
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  <button
+      class="relative z-10 flex flex-row items-center gap-2 text-neutral-500 transition hover:text-red-500"
+  >
+      <!-- icono de heart -->
+      <p>
+          Conteo de likes
+      </p>
+  </button>
+  ```
+- [ ] Crear componente para icono de `heart`
+
+  ```php filename=resources/views/components/icon/hear-outline.blade.php
+  <svg
+      {{ $attributes }}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+  >
+      <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+      />
+  </svg>
+  ```
+- [ ] Agregar icono para likear
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  <x-icon.heart-outline class="size-5" />
+  ```
+- [ ] Crear migración para la tabla `likes`
+
+  ```php filename=database/migrations/create_likes_table.php
+  $table->foreignId('user_id')->constrained('users');
+  $table->foreignId('post_id')->constrained('posts');
+  ```
+- [ ] Ejecutar migración
+- [ ] Agregar relaciones a los modelos `Post` y `User`
+
+  ```php filename=app/Models/Posts
+  public function likedBy()
+  {
+      return $this->belongsToMany(User::class, 'likes');
+  }
+  ```
+
+  ```php filename=app/Models/User
+  public function likedPosts()
+  {
+      return $this->belongsToMany(Post::class, 'likes');
+  }
+  ```
+- [ ] Poder likear `posts`
+
+  ```php filename=resources/views/livewiere/post-list.blade.php
+  $toggleLike = function (Post $post) {
+      auth()->user()->likedPosts()->toggle($post);
+
+      $this->getPosts();
+  };
+  ```
+
+  ```php filename=resources/views/livewiere/post-list.blade.php
+  <button wire:click="toggleLike({{ $post->id }})">Like</button>
+  ```
+- [ ] Cambiar icono si el post ha sido likeado
+
+  ```php filename=resources/views/livewiere/post-list.blade.php
+  @if ($post->likedBy->contains(auth()->user()))
+      <x-icon.heart-solid class="size-5 text-red-500" />
+  @else
+      <x-icon.heart-outline class="size-5" />
+  @endif
+  ```
+
+  ```php filename=resources/views/componentes/icon/heart-solid.blade.php
+  <svg {{ $attributes }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path
+          d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"
+      />
+  </svg>
+  ```
+- [ ] Añadir conteo de likes
+
+
+  ```php filename=resources/views/livewiere/post-list.blade.php
+  <p>
+      {{ $post->likedBy->count() }}
+  </p>
+  ```
+- [ ] Crear componente Volt `show-post`
+
+  ```php filename=resources/views/livewire/show-post.blade.php
+  state(['post']);
+  ```
+
+  Mover información del post desde la página de folio al componente `show-post`
+- [ ] Poder likear `post` desde la página del post
+
+  ```php filename=resources/views/livewire/show-post.blade.php
+  $toggleLike = function () {
+      auth()->user()->likedPosts()->toggle($this->post);
+
+      $this->post->refresh();
+  };
+  ```
+
+  ```php filename=resources/views/livewire/show-post.blade.php
+  <button
+      wire:click="toggleLike({{ $post->id }})"
+      class="relative z-10 flex flex-row items-center gap-2 text-neutral-500 transition hover:text-red-500"
+  >
+      @if ($post->likedBy->contains(auth()->user()))
+          <x-icon.heart-solid class="size-5 text-red-500" />
+      @else
+          <x-icon.heart-outline class="size-5" />
+      @endif
+      <p>
+          {{ $post->likedBy->count() }}
+      </p>
+  </button>
+  ```
+- [ ] Abrir modal de inicio de sesión para likear `post`
+
+  ```php
+  <button
+  @auth
+      wire:click="toggleLike({{ $post->id }})"
+  @else
+      @click="$dispatch('show-login-modal')"
+  @endauth
+  >Like</button>
+  ```
+
 ## Comentar publicaciones
 
 - [ ] Crear pagina Folio `Posts/[Post].blade.php`
@@ -262,6 +520,18 @@
   <x-header with-back-button>Post</x-header>
   ```
 - [ ] Crear componente Blade `auth-buttons`
+
+  ```php
+  <div class="border-b-[1px] border-neutral-800 px-5 py-2">
+      <div class="py-8" x-data>
+          <h1 class="mb-4 text-center text-2xl font-bold text-white">Bienvenido a Flitter</h1>
+          <div class="flex flex-row items-center justify-center gap-4">
+              <x-button type="button" @click="$dispatch('show-login-modal')">Iniciar sesión</x-button>
+              <x-button type="button" @click="$dispatch('show-register-modal')" secondary>Registrarse</x-button>
+          </div>
+      </div>
+  </div>
+  ```
 - [ ] Añadir `auth-buttons` a las páginas `index` y `posts/[Post]`
 
 ## Listado de publicaciones
