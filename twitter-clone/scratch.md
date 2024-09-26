@@ -40,6 +40,21 @@
       Username
   </a>
   ```
+
+  ```php filename=resources/views/livewire/comment-list.blade.php
+  <a
+      href="{{ route('users.show', ['user' => $post->user]) }}"
+      wire:navigate
+  >
+      Nombre del usuario
+  </a>
+
+  <a
+      href="{{ route('users.show', ['user' => $post->user]) }}"
+      wire:navigate
+  >
+      Username
+  </a>
 - [ ] Crear componente Blade `user-hero` y añadirlo a `users/[User]`
 
   ```php filename=resources/views/components/user-hero.blade.php
