@@ -179,6 +179,15 @@
   >
       Username
   </a>
+
+  ```php filename=resources/views/componentes/avatar.blade.php
+  <a
+      href="{{ route('users.show', ['user' => $user]) }}"
+      wire:navigate
+  >
+      Avatar
+  </a>
+  ```
 - [ ] Crear componente Blade `user-hero` y añadirlo a `users/[User]`
 
   ```php filename=resources/views/components/user-hero.blade.php
