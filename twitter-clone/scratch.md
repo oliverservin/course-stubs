@@ -1,3 +1,92 @@
+## Seguir usuarios
+
+- [ ] Agregar botón para seguir un usuario
+
+  ```php filename=resources/views/components/user-bio.blade.php
+  <div class="flex justify-end p-2">
+      <x-button secondary>Seguir</x-button>
+  </div>
+  ```
+- [ ] Crear migración para crear tabla `followers`
+
+
+  ```php filename=database/migrations/create_followers_table.php
+  $table->foreignId('user_id')->constrained('users');
+  $table->foreignId('follower_id')->constrained('users');
+  ```
+- [ ] Ejecutar migraciones
+- [ ] Mover componente Blade `user-bio` a un componente Volt
+
+  ```php filename=resources/views/pages/users/[User].blade.php
+  <livewire:user-bio :user="$user" />
+  ```
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  state(['user']);
+  ```
+- [ ] Registrar relaciones de followers
+
+  ```php filename=app/Models/User.php
+    public function followers()
+  {
+      return $this->belongsToMany(User::class, 'followers', 'user_id', 'follower_id');
+  }
+
+  public function following()
+  {
+      return $this->belongsToMany(User::class, 'followers', 'follower_id', 'user_id');
+  }
+  ```
+- [ ] Poder seguir usuario
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  <?php
+
+  $getIsFollowing = function () {
+      return $this->isFollowing = auth()->user()->following->contains($this->user);
+  };
+
+  state([
+      'isFollowing' => $getIsFollowing,
+  ]);
+
+  $toggleFollow = function (User $user) {
+      auth()->user()->following()->toggle($user);
+
+      $this->getIsFollowing();
+  };
+
+  ?>
+
+  <div class="flex justify-end p-2">
+      @if (auth()->check() && $user->id === auth()->user()->id)
+          <x-button secondary disabled>
+              Seguir
+          </x-button>
+      @elseif (auth()->check())
+          <x-button wire:click="toggleFollow({{ $user->id }})" :outline="$isFollowing" :secondary="! $isFollowing">
+              {{ $isFollowing ? 'Dejar de seguir' : 'Seguir' }}
+          </x-button>
+      @else
+          <x-button @click="$dispatch('show-login-modal')" secondary>Seguir</x-button>
+      @endif
+  </div>
+  ```
+- [ ] Agregar sección de siguiendo y seguidores a `user-bio`
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  <div class="mt-4 flex flex-row items-center gap-6">
+      <div class="flex flex-row items-center gap-1">
+          <p class="text-white">0</p>
+          <p class="text-neutral-500">Siguiendo</p>
+      </div>
+      <div class="flex flex-row items-center gap-1">
+          <p class="text-white">0</p>
+          <p class="text-neutral-500">Seguidores</p>
+      </div>
+  </div>
+  ```
+
 ## Mostrar posts por usuario
 
 - [ ] Crear página de Folio para ver usuarios
@@ -364,7 +453,6 @@
   ```
 - [ ] Guardar comentarios
 
-
   ```blade filename=resources/views/livewire/comment-form.blade.php
   state(['post', 'body']);
 
@@ -448,6 +536,18 @@
 
   ```php filename=resources/views/pages/posts/[Post]
     <livewire:comment-list :post="$post" />
+  ```
+- [ ] Ordernar *posts* por fecha
+
+  ```php filename=app/Models/Comment.php
+  protected static function boot()
+  {
+      parent::boot();
+
+      static::addGlobalScope('order', function ($query) {
+          $query->orderBy('created_at', 'desc');
+      });
+  }
   ```
 - [ ] Emitir evento `comment-created` en el `comment-form`
 
@@ -588,6 +688,18 @@
   };
 
   state(['posts' => $getPosts]);
+  ```
+- [ ] Ordernar *posts* por fecha
+
+  ```php filename=app/Models/Post.php
+  protected static function boot()
+  {
+      parent::boot();
+
+      static::addGlobalScope('order', function ($query) {
+          $query->orderBy('created_at', 'desc');
+      });
+  }
   ```
 - [ ] Agregar relación "Belong To User" al model `Posts`
 
