@@ -1,3 +1,200 @@
+## Subir foto de perfil y de portada
+
+- [ ] Agregar componentes Alpine a `user-bio` para seleccionar foto
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  <div x-data="{ coverName: null, coverPreview: null }">
+      <input
+          type="file"
+          id="cover"
+          class="hidden"
+          x-ref="cover"
+          x-on:change="
+              coverName = $refs.cover.files[0].name
+              const reader = new FileReader()
+              reader.onload = (e) => {
+                  coverPreview = e.target.result
+              }
+              reader.readAsDataURL($refs.cover.files[0])
+          "
+      />
+
+      <div class="space-y-2">
+          <div class="relative h-44 overflow-hidden rounded-lg bg-neutral-700">
+              <span
+                  x-show="coverPreview"
+                  x-cloak
+                  class="block h-full w-full bg-cover bg-center bg-no-repeat"
+                  x-bind:style="'background-image: url(\'' + coverPreview + '\');'"
+              ></span>
+          </div>
+          <div class="text-right">
+              <x-button secondary type="button" x-on:click.prevent="$refs.cover.click()">
+                  Seleccionar foto nueva
+              </x-button>
+          </div>
+      </div>
+  </div>
+  <div x-data="{ photoName: null, photoPreview: null }">
+      <input
+          type="file"
+          id="photo"
+          class="hidden"
+          x-ref="photo"
+          x-on:change="
+              photoName = $refs.photo.files[0].name
+              const reader = new FileReader()
+              reader.onload = (e) => {
+                  photoPreview = e.target.result
+              }
+              reader.readAsDataURL($refs.photo.files[0])
+          "
+      />
+
+      <div class="flex items-center justify-between gap-2">
+          <div>
+              <span
+                  x-show="photoPreview"
+                  x-cloak
+                  class="block h-20 w-20 rounded-full bg-cover bg-center bg-no-repeat"
+                  x-bind:style="'background-image: url(\'' + photoPreview + '\');'"
+              ></span>
+          </div>
+          <x-button secondary type="button" x-on:click.prevent="$refs.photo.click()">
+              Seleccionar foto nueva
+          </x-button>
+      </div>
+  </div>
+  ```
+- [ ] Actualizar migración de la tabla `users`
+
+  ```php filename=database/migrations/0001_01_01_000000_create_users_table.php
+  $table->string('profile_photo_path')->nullable();
+  $table->string('cover_photo_path')->nullable();
+  ```
+- [ ] Agregar métodos en modelo `User` para subir foto y portada
+
+  ```php filename=app/Models/User.php
+  public function updateProfilePhoto(UploadedFile $photo)
+  {
+      tap($this->profile_photo_path, function ($previous) use ($photo) {
+          $this->forceFill([
+              'profile_photo_path' => $photo->storePublicly(
+                  'profile-photos', ['disk' => 'public']
+              ),
+          ])->save();
+
+          if ($previous) {
+              Storage::disk('public')->delete($previous);
+          }
+      });
+  }
+
+  public function updateCoverPhoto(UploadedFile $photo)
+  {
+      tap($this->cover_photo_path, function ($previous) use ($photo) {
+          $this->forceFill([
+              'cover_photo_path' => $photo->storePublicly(
+                  'cover-photos', ['disk' => 'public']
+              ),
+          ])->save();
+
+          if ($previous) {
+              Storage::disk('public')->delete($previous);
+          }
+      });
+  }
+  ```
+- [ ] Agregar métodos en modelo `User` para obteber la url de la foto y portada
+
+
+  ```php filename=app/Models/User.php
+  public function profilePhotoUrl(): Attribute
+  {
+      return Attribute::get(function () {
+          return $this->profile_photo_path
+                  ? Storage::disk('public')->url($this->profile_photo_path)
+                  : asset('images/placeholder.png');
+      });
+  }
+
+  public function coverPhotoUrl(): Attribute
+  {
+      return Attribute::get(function () {
+          return $this->cover_photo_path
+                  ? Storage::disk('public')->url($this->cover_photo_path)
+                  : null;
+      });
+  }
+  ```
+- [ ] Poder subir perfil y portada
+
+  ```php
+  <?php
+
+  uses(WithFileUploads::class);
+
+  state([
+      'photo',
+      'cover',
+  ]);
+
+  rules(fn () => [
+      'photo' => ['nullable', 'image', 'max:1024'],
+      'cover' => ['nullable', 'image', 'max:1024'],
+  ]);
+
+  $updateUser = function () {
+      // Después de validar
+
+      if ($this->photo) {
+          $this->user->updateProfilePhoto($this->photo);
+      }
+
+      if ($this->cover) {
+          $this->user->updateCoverPhoto($this->cover);
+      }
+  };
+
+  ?>
+
+  <input wire:model.live="cover">
+
+  <input wire:model.live="photo">
+  ```
+- [ ] Utilizar foto de perfil en el componente `avatar`
+
+
+  ```php filename=resources/views/componentes/avatar.blade.php
+  <img src="{{ $user->profile_photo_url }}" />
+  ```
+- [ ] Utilizar portada en el componente `user-hero`
+
+  ```php filename=resources/views/components/user-hero.blade.php
+  @if ($user->cover_photo_url)
+      <img src="{{ $user->cover_photo_url }}" alt="{{ $user->name }}" class="h-full w-full object-cover" />
+  @endif
+  ```
+- [ ] Mostrar foto de perfil y portada en el modal de editar perfil
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  @if ($this->user->cover_photo_url)
+      <img
+          x-show="! coverPreview"
+          src="{{ $user->cover_photo_url }}"
+          alt="{{ $user->name }}"
+          class="h-full w-full bg-center bg-no-repeat object-cover"
+      />
+
+      <img
+          x-show="! photoPreview"
+          src="{{ $user->profile_photo_url }}"
+          alt="{{ $user->name }}"
+          class="h-20 w-20 rounded-full object-cover"
+      />
+  @endif
+  ```
+
 ## Edición de perfil de usuarios
 
 - [ ] Agregar modal en componente `user-bio`
