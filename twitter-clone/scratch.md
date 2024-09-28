@@ -107,7 +107,6 @@
   ```
 - [ ] Agregar métodos en modelo `User` para obteber la url de la foto y portada
 
-
   ```php filename=app/Models/User.php
   public function profilePhotoUrl(): Attribute
   {
@@ -163,7 +162,6 @@
   <input wire:model.live="photo">
   ```
 - [ ] Utilizar foto de perfil en el componente `avatar`
-
 
   ```php filename=resources/views/componentes/avatar.blade.php
   <img src="{{ $user->profile_photo_url }}" />
@@ -277,7 +275,6 @@
   </div>
   ```
 - [ ] Crear migración para crear tabla `followers`
-
 
   ```php filename=database/migrations/create_followers_table.php
   $table->foreignId('user_id')->constrained('users');
@@ -623,7 +620,6 @@
   ```
 - [ ] Añadir conteo de likes
 
-
   ```php filename=resources/views/livewiere/post-list.blade.php
   <p>
       {{ $post->likedBy->count() }}
@@ -743,7 +739,6 @@
   php artisan migrate
   ```
 - [ ] Agregar relaciones entre comentarios y posts
-
 
   ```php filename=app/Models/Comment.php
   public function user()
@@ -935,7 +930,6 @@
   ```
 - [ ] Añadir `header` a las páginas `index` y `posts/[Post]`
 
-
   ```php filename=resources/views/pages/index.blade.php
   <x-header>Inicio</x-header>
   ```
@@ -991,6 +985,7 @@
   ```
 - [ ] Agregar `post-list` al `index`
 - [ ] Obtener *posts* desde el `post-list`
+
   ```php
   $getPosts = function () {
       return $this->posts = Post::all();
