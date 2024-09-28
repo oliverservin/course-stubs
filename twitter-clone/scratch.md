@@ -1,3 +1,75 @@
+## Edición de perfil de usuarios
+
+- [ ] Agregar modal en componente `user-bio`
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  <div>
+      <div x-cloak x-transition.opacity x-show="showEditModal" class="fixed inset-0 z-50 bg-neutral-800/70"></div>
+      <div x-cloak x-transition x-show="showEditModal" class="fixed inset-0 z-50 flex items-center">
+          <div @click.away="showEditModal = false" class="mx-auto w-full max-w-lg rounded-lg bg-black p-10">
+              Formulario
+          </div>
+      </div>
+  </div>
+  ```
+- [ ] Abrir modal con botón `Editar perfil`
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  <div
+      x-data="{ showEditModal: false }"
+      @keydown.window.escape="showEditModal = false"
+  >
+      <x-button @click="showEditModal = !showEditModal" secondary>Editar</x-button>
+  </div>
+  ```
+- [ ] Agregar formulario para editar perfil al modal
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  <form>
+      <div class="flex items-center justify-between">
+          <h3 class="text-3xl font-semibold text-white">Edita tu perfil</h3>
+          <button @click="showEditModal = false" type="button" class="p-1 hover:opacity-70">
+              <x-icon.close class="size-5" />
+          </button>
+      </div>
+      <div class="mt-20 flex flex-col gap-4">
+          <x-input placeholder="Nombre" />
+          <x-input placeholder="Nombre de usuario" />
+          <x-input placeholder="Biografía" />
+      </div>
+      <div class="mt-20">
+          <x-button secondary full-width large>Guardar</x-button>
+      </div>
+  </form>
+  ```
+- [ ] Poder actualizar el perfil
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  state([
+      'name' => auth()->user()?->name,
+      'username' => auth()->user()?->username,
+      'bio' => auth()->user()?->bio,
+  ]);
+
+  rules(fn () => [
+      'name' => ['required', 'string', 'max:255'],
+      'username' => ['required', 'string', 'max:255', 'unique:users,username,'.auth()->user()->id],
+      'bio' => ['nullable', 'string', 'max:255'],
+  ]);
+
+  $updateUser = function () {
+      $this->validate();
+
+      auth()->user()->update([
+          'name' => $this->name,
+          'username' => $this->username,
+          'bio' => $this->bio,
+      ]);
+
+      $this->redirect(route('users.show', ['user' => $this->user]), navigate: true);
+  };
+  ```
+
 ## Seguir usuarios
 
 - [ ] Agregar botón para seguir un usuario
