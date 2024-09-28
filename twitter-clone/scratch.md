@@ -1,3 +1,77 @@
+## Notificaciones Toast
+
+- [ ] Agregar plugin `notify` al layout `app`
+
+  ```php filename=resources/views/components/layouts/app.blade.php
+  <script defer src="https://unpkg.com/alpinejs-notify@latest/dist/notifications.min.js"></script>
+  ```
+- [ ] Crear componente Blade `toast`
+
+  ```php filename=resources/views/components/toast.blade.php
+  <div
+      x-data="{
+          message: '{{ session('toast') }}',
+          notify(message) {
+              $notify(message, {
+                  wrapperId: 'flashMessageWrapper',
+                  templateId: 'flashMessageTemplate',
+                  autoClose: 3000,
+                  autoRemove: 4000,
+              })
+          },
+      }"
+      x-on:toast.window="notify($event.detail.message)"
+      x-init="if (message) notify(message)"
+  >
+      <div id="flashMessageWrapper" class="fixed right-4 top-4 z-50 w-64 space-y-2"></div>
+
+      <template id="flashMessageTemplate">
+          <div role="alert" class="flex gap-1.5 rounded-lg bg-sky-500 px-4 py-3 text-white">
+              <x-icons.check class="size-6" />
+              {notificationText}
+          </div>
+      </template>
+  </div>
+  ```
+
+  ```php filename=resources/views/components/icon/check.blade.php
+  <svg {{ $attributes }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path
+          fill-rule="evenodd"
+          d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+          clip-rule="evenodd"
+      />
+  </svg>
+  ```
+- [ ] Registrar `toast` en layout `app`
+
+  ```php filename=resources/views/components/layouts/app.blade.php
+  <x-toast />
+  ```
+- [ ] Despachar evento `toast` al publicar post, favoritear, comentar,
+
+  ```php filename=resources/views/livewire/post-form.blade.php
+  $this->dispatch('toast', message: 'Publicación creada');
+  ```
+
+  ```php filename=resources/views/livewire/comment-form.blade.php
+  $this->dispatch('toast', message: 'Comentario creado');
+  ```
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  $this->dispatch('toast', message: 'Éxito');
+  ```
+
+  ```php filename=resources/views/livewire/show-post.blade.php
+  $this->dispatch('toast', message: 'Éxito');
+  ```
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  $this->dispatch('toast', message: 'Éxito');
+
+  session()->flash('toast-success', 'Actualizado');
+  ```
+
 ## Subir foto de perfil y de portada
 
 - [ ] Agregar componentes Alpine a `user-bio` para seleccionar foto
