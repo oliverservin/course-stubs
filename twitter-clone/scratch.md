@@ -773,18 +773,15 @@
   $save = function () {
       $this->validate();
 
-      $this->authorize('addComment', $this->post);
 
       $this->post->comments()->create([
           'user_id' => Auth::user()->id,
           'body' => $this->body,
       ]);
 
-      $this->post->user->notify(new CommentAdded);
-
-      $this->dispatch('comment.created');
-
       $this->body = '';
+
+      $this->dispatch('comment-created');
   };
   ```
 - [ ] Pasar `post` al componente `comment-form`
