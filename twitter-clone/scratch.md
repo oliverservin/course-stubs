@@ -622,7 +622,7 @@
   <?php
 
   $getIsFollowing = function () {
-      return $this->isFollowing = auth()->user()->following->contains($this->user);
+      return $this->isFollowing = auth()->user()?->following->contains($this->user);
   };
 
   state([
