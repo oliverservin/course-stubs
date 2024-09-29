@@ -1,3 +1,195 @@
+## Notificaciones
+
+- [ ] Crear tabla de notificaciones y ejecutar migración
+
+  ```bash
+  php artisan notifications:table
+  ```
+
+  ```bash
+  php artisan migrate
+  ```
+- [ ] Crear notificación de nuevo like `PostLiked`
+
+  ```php filename=app/Notifications/PostLiked.php
+  public function via()
+  {
+      return ['database'];
+  }
+
+  public function toArray()
+  {
+      return [
+        'body' => '¡A alguien le gustó tu publicación!',
+      ];
+  }
+  ```
+- [ ] Notificar al autor de la publicación cuando alguien le dió like
+
+  ```php filename=resources/views/livewire/post-list.blade.php
+  if ($post->likedBy->contains(auth()->user())) {
+      $post->user->notify(new PostLiked);
+  }
+  ```
+- [ ] Crear página de Folio `notifications`
+
+  ```php filename=resources/views/pages/notifications.blade.php
+  <?php
+
+  use function Laravel\Folio\middleware;
+  use function Laravel\Folio\name;
+
+  name('notifications');
+
+  middleware('auth');
+
+  ?>
+
+  <x-layouts.app>
+      <x-header with-back-button>Notificaciones</x-header>
+  </x-layouts.app>
+  ```
+- [ ] Agregar elemento en el sidebar
+
+  ```php filename=resources/views/livewire/sidebar.blade.php
+  <a href="{{ route('notifications') }}" wire:navigate class="flex flex-row items-center">
+      <div
+          class="relative flex h-14 w-14 cursor-pointer items-center justify-center rounded-full p-4 hover:bg-slate-300 hover:bg-opacity-10 lg:hidden"
+      >
+          <x-icon.user class="size-7" />
+      </div>
+      <div
+          class="items-row relative hidden cursor-pointer items-center gap-4 rounded-full p-4 hover:bg-slate-300 hover:bg-opacity-10 lg:flex"
+      >
+          <x-icon.user class="size-6" />
+          <p class="hidden text-xl text-white lg:block">
+              Notificaciones
+          </p>
+      </div>
+  </a>
+  ```
+
+  ```php filename=resources/views/components/icon/bell.blade.php
+  <svg {{ $attributes }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path
+          fill-rule="evenodd"
+          d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z"
+          clip-rule="evenodd"
+      />
+  </svg>
+  ```
+- [ ] Crear componente Volt `notification-list`
+
+  ```php filename=resources/views/livewire/notification-list.blade.php
+  <div>
+      <div class="flex flex-col">
+          <div
+              class="flex flex-row items-center gap-4 border-b-[1px] border-neutral-800 p-6"
+          >
+              <svg
+                  class="size-8"
+                  width="48"
+                  height="48"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+              >
+                  <rect width="48" height="48" fill="transparent" />
+                  <path d="M8.99786 17.8433L39.9033 0L39.0844 12.6994L12.7638 27.8955L8.99786 17.8433Z" fill="white" />
+                  <path
+                      opacity="0.5"
+                      d="M12.7637 27.8948L34.4994 15.3457L33.6805 28.0451L16.5296 37.9471L12.7637 27.8948Z"
+                      fill="white"
+                  />
+                  <path
+                      opacity="0.25"
+                      d="M16.5273 37.9477L29.0933 30.6927L28.2744 43.3921L20.2933 48L16.5273 37.9477Z"
+                      fill="white"
+                  />
+              </svg>
+              <p class="text-white">Contenido de la notificación</p>
+          </div>
+      </div>
+  </div>
+  ```
+- [ ] Obtener notificaciones
+
+  ```php filename=resources/views/livewire/notification-list.blade.php
+  state(['notifications' => auth()->user()->notifications]);
+  ```
+- [ ] Mostrar notificaciones
+
+  ```php
+  @foreach ($notifications as $notification)
+    {{ $notification->data['body'] }}
+  @endforeach
+  ```
+- [ ] Agregar indicador de notificaciones no vistas
+
+  ```php filename=resources/views/livewire/sidebar.blade.php
+  <divi>
+      <x-icon.bell />
+      @if (auth()->user()->unreadNotifications->count() > 0)
+        <span class="absolute left-7 top-4 block size-3 rounded-full bg-sky-500"></span>
+      @endif
+      <p>Notificaciones</p>
+  </div>
+  ```
+- [ ] Marcar notificaciones como leídas al montar el componente `notification-list`
+
+  ```php filename=resources/views/livewire/notification-list.blade.php
+  mount(function () {
+      auth()->user()->unreadNotifications->markAsRead();
+  });
+  ```
+- [ ] Refrescar el componente `sidebar` con `wire:poll`
+
+  ```php filename=resources/views/livewire/sidebar.blade.php
+  <div wire:poll>...</div>
+  ```
+- [ ] Crear notificación de nuevo like `CommentAdded`
+
+  ```php filename=app/Notifications/CommentAdded.php
+  public function via()
+  {
+      return ['database'];
+  }
+
+  public function toArray()
+  {
+      return [
+          'body' => '¡Alguien ha respondido a tu publicación!',
+      ];
+  }
+  ```
+- [ ] Notificar al autor de la publicación cuando alguien publicó un comentario
+
+  ```php filename=resources/views/livewire/comment-list.blade.php
+  $this->post->user->notify(new CommentAdded);
+  ```
+- [ ] Crear notificación de nuevo seguidor `NewFollower`
+
+  ```php filename=app/Notifications/NewFollower.php
+  public function via()
+  {
+      return ['database'];
+  }
+
+  public function toArray()
+  {
+      return [
+          'body' => '¡Alguien ha respondido a tu publicación!',
+      ];
+  }
+  ```
+- [ ] Notificar que se tiene un nuevo seguidor
+
+  ```php filename=resources/views/livewire/user-bio.blade.php
+  if ($user->followers->contains(auth()->user())) {
+      $user->notify(new NewFollower);
+  }
+  ```
+
 ## Sidebar
 
 - [ ] Crear componente Volt `sidebar`
