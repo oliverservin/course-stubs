@@ -1457,8 +1457,90 @@
   ```
 - [ ] Añadir `auth-buttons` a las páginas `index` y `posts/[Post]`
 
-## Listado de publicaciones
+## Sistema de publicaciones
 
+- [ ] Crear componente Volt `post-form`
+
+  ```blade filename=resources/views/livewire
+  <div class="border-b-[1px] border-neutral-800 px-5 py-2">
+    <div class="flex flex-row gap-4">
+        <div>
+            <!-- Avatar -->
+        </div>
+        <div class="w-full">
+            <form>
+                <textarea
+                    class="peer mt-3 w-full resize-none border-0 bg-black p-0 text-[20px] text-white placeholder-neutral-500 outline-none ring-0 focus:ring-0 disabled:opacity-80"
+                    placeholder="¿Que estas pensando?"
+                ></textarea>
+                <hr class="h-[1px] w-full border-neutral-800 opacity-0 transition peer-focus:opacity-100" />
+                <div class="mt-4 flex flex-row justify-end">
+                    <x-button>Publicar</x-button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+  ```
+- [ ] Agregar `post-form` al `index` como no guest
+- [ ] Crear componente Blade `avatar`
+
+  ```blade filename=resources/views/components/avatar.blade.php
+  @props(['user', 'hasBorder' => false, 'large' => false])
+
+  <span
+      @class([
+          'relative z-10 block rounded-full transition hover:opacity-90',
+          'border-4 border-black' => $hasBorder,
+          'size-32' => $large,
+          'size-12' => ! $large,
+      ])
+  >
+      <img class="rounded-full object-cover" alt="Avatar" src="/images/placeholder.png" />
+  </span>
+  ```
+- [ ] Pegar placeholder desde los stubs
+- [ ] Agregar `avatar` al componente `post-form` pasando el user
+- [ ] Crear modelo `Post` con migración
+- [ ] Agregar columnas a la tabla `posts`
+
+  ```php filename="database/migrations/create_posts_table.php"
+  $table->foreignId('user_id')->constrained('users');
+  $table->text('body');
+  ```
+- [ ] Ejecutar migración
+- [ ] Agregar el `body` al `fillable` de `Post`
+
+  ```php filename="app/models/Post.php"
+  protected $fillable = [
+      'body',
+  ];
+  ```
+- [ ] Agregar la relación "Has Many Posts" al modelo `User`
+
+  ```php filename="app/models/User.php"
+  public function posts()
+  {
+      return $this->hasMany(Post::class);
+  }
+  ```
+- [ ] Crear acción de guardar publicación en `post-form`
+
+  ```php filename="resources/views/livewire/post-form.blade.php"
+  state('body');
+
+  rules(['body' => 'required|min:3']);
+
+  $save = function () {
+      $this->validate();
+
+      Auth::user()->posts()->create([
+          'body' => $this->body,
+      ]);
+
+      $this->body = '';
+  };
+  ```
 - [ ] Crear componente Volt `post-list`
 
   ```php filename="resources/views/livewire/post-list.blade.php"
@@ -1530,132 +1612,8 @@
   on(['post.created' => $getPosts]);
   ```
 
-## Creación de publicaciones
-
-- [ ] Crear componente Volt `post-form`
-
-  ```blade filename=resources/views/livewire
-  <div class="border-b-[1px] border-neutral-800 px-5 py-2">
-    <div class="flex flex-row gap-4">
-        <div>
-            <!-- Avatar -->
-        </div>
-        <div class="w-full">
-            <form>
-                <textarea
-                    class="peer mt-3 w-full resize-none border-0 bg-black p-0 text-[20px] text-white placeholder-neutral-500 outline-none ring-0 focus:ring-0 disabled:opacity-80"
-                    placeholder="¿Que estas pensando?"
-                ></textarea>
-                <hr class="h-[1px] w-full border-neutral-800 opacity-0 transition peer-focus:opacity-100" />
-                <div class="mt-4 flex flex-row justify-end">
-                    <x-button>Publicar</x-button>
-                </div>
-            </form>
-        </div>
-    </div>
-  </div>
-  ```
-- [ ] Agregar `post-form` al `index` como no guest
-- [ ] Crear componente Blade `avatar`
-
-  ```blade filename=resources/views/components/avatar.blade.php
-  @props(['user', 'hasBorder' => false, 'large' => false])
-
-  <span
-      @class([
-          'relative z-10 block rounded-full transition hover:opacity-90',
-          'border-4 border-black' => $hasBorder,
-          'size-32' => $large,
-          'size-12' => ! $large,
-      ])
-  >
-      <img class="rounded-full object-cover" alt="Avatar" src="/images/placeholder.png" />
-  </span>
-  ```
-- [ ] Pegar placeholder desde los stubs
-- [ ] Agregar `avatar` al componente `post-form` pasando el user
-- [ ] Crear `Post` model con migración
-- [ ] Agregar columnas a la tabla `posts`
-
-  ```php filename="database/migrations/create_posts_table.php"
-  $table->foreignId('user_id')->constrained('users');
-  $table->text('body');
-  ```
-- [ ] Ejecutar migración
-- [ ] Agregar el `body` al `fillable` de `Post`
-
-  ```php filename="app/models/Post.php"
-  protected $fillable = [
-      'body',
-  ];
-  ```
-- [ ] Agregar la relación "Has Many Posts" al modelo `User`
-
-  ```php filename="app/models/User.php"
-  public function posts()
-  {
-      return $this->hasMany(Post::class);
-  }
-  ```
-- [ ] Crear acción de guardar publicación en `post-form`
-
-  ```php filename="resources/views/livewire/post-form.blade.php"
-  state('body');
-
-  rules(['body' => 'required|min:3']);
-
-  $save = function () {
-      $this->validate();
-
-      Auth::user()->posts()->create([
-          'body' => $this->body,
-      ]);
-
-      $this->body = '';
-  };
-  ```
-
 ## Autenticación
 
-- [x] Crear `app` layout
-
-  ```php filename=resources/views/components/layouts/app.blade.php
-  <!DOCTYPE html>
-  <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
-      <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta name="csrf-token" content="{{ csrf_token() }}" />
-
-          <title>{{ config('app.name', 'Laravel') }}</title>
-
-          <!-- Scripts -->
-          @vite(['resources/css/app.css', 'resources/js/app.js'])
-      </head>
-      <body class="h-full font-sans text-white antialiased">
-          <div class="h-screen bg-black">
-              <div class="xl:px-30 container mx-auto h-full max-w-6xl">
-                  <div class="grid h-full grid-cols-4">
-                      <div>
-                          <!-- Sidebar -->
-                      </div>
-                      <div class="col-span-3 border-x-[1px] border-neutral-800 lg:col-span-2">{{ $slot }}</div>
-                      <div>
-                          <!-- Seguir cuentas -->
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </body>
-  </html>
-  ```
-- [x] Crear página Folio `index`
-
-  Registrar la ruta `home` a la página `index` de Folio:
-
-  ```php filename=resources/views/pages/index.blade.php
-  name('home');
-  ```
 - [x] Crear componente `button`
 
   ```blade filename=resources/views/components/button.blade.php
@@ -1946,4 +1904,43 @@
     "useLaravelPint": true,
     "echoStyle": "inline"
   }
+  ```
+- [x] Crear página Folio `index`
+
+  Registrar la ruta `home` a la página `index` de Folio:
+
+  ```php filename=resources/views/pages/index.blade.php
+  name('home');
+  ```
+- [x] Crear `app` layout
+
+  ```php filename=resources/views/components/layouts/app.blade.php
+  <!DOCTYPE html>
+  <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+      <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+          <title>{{ config('app.name', 'Laravel') }}</title>
+
+          <!-- Scripts -->
+          @vite(['resources/css/app.css', 'resources/js/app.js'])
+      </head>
+      <body class="h-full font-sans text-white antialiased">
+          <div class="h-screen bg-black">
+              <div class="xl:px-30 container mx-auto h-full max-w-6xl">
+                  <div class="grid h-full grid-cols-4">
+                      <div>
+                          <!-- Sidebar -->
+                      </div>
+                      <div class="col-span-3 border-x-[1px] border-neutral-800 lg:col-span-2">{{ $slot }}</div>
+                      <div>
+                          <!-- Seguir cuentas -->
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </body>
+  </html>
   ```
