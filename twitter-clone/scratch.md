@@ -1220,7 +1220,7 @@
   ```php
   <a class="absolute inset-0"></a>
   ```
-- [ ] Crear componente Volt `comment-form`
+- [ ] Crear componente Volt `comment-form` y añadirlo al mostrar el post
 
   Copiar componente desde `post-form`
 - [ ] Crear modelo `Comment` con migración
@@ -1280,8 +1280,6 @@
       ]);
 
       $this->body = '';
-
-      $this->dispatch('comment-created');
   };
   ```
 - [ ] Pasar `post` al componente `comment-form`
@@ -1346,7 +1344,7 @@
   ```php filename=resources/views/pages/posts/[Post]
     <livewire:comment-list :post="$post" />
   ```
-- [ ] Ordernar *posts* por fecha
+- [ ] Ordernar comentarios por fecha
 
   ```php filename=app/Models/Comment.php
   protected static function boot()
@@ -1375,7 +1373,7 @@
       <a
           class="relative z-10 flex flex-row items-center gap-2 text-neutral-500 transition hover:text-sky-500"
       >
-          <x-icons.comment class="size-5" />
+          <!-- icono de comentario -->
           <p>Conteo de comentario</p>
       </a>
   </div>
